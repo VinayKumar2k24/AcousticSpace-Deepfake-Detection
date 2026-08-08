@@ -1,146 +1,64 @@
-# AcousticSpace-Deepfake-Detection
+# 🎙️ AcousticSpace – AI-Powered Deepfake Voice Detection
 
-An AI-powered Deepfake Voice Detection system using the **AASIST (Audio Anti-Spoofing using Integrated Spectro-Temporal Graph Attention Networks)** model to classify **Genuine** and **Spoofed** speech using Room Impulse Response (RIR) features.
-
----
-
-## Overview
-
-This project is designed to detect AI-generated or spoofed voices by leveraging the AASIST deep learning architecture. It provides a FastAPI-based backend for inference and includes pre-trained models, configuration files, evaluation scripts, and prediction utilities.
+> **An AI-powered audio forensic and deepfake voice detection system using AASIST (Audio Anti-Spoofing using Integrated Spectro-Temporal Graph Attention Networks), acoustic analysis, and Room Impulse Response (RIR) analysis.**
 
 ---
 
-## Features
+## 📌 Project Overview
 
-- Deepfake Voice Detection
-- AASIST Deep Learning Model
-- FastAPI Backend
-- PyTorch Implementation
-- Pre-trained Weights Included
-- Configuration Files
-- Evaluation Metrics
-- Prediction API
+**AcousticSpace** is an AI-powered **Deepfake Voice Detection and Audio Forensics platform** designed to analyze speech/audio recordings and determine whether the input is:
 
----
+- 🟢 **Genuine / Bonafide Speech**
+- 🔴 **Spoofed / Deepfake Speech**
 
-## Project Structure
+The core detection system is based on the **AASIST (Audio Anti-Spoofing using Integrated Spectro-Temporal Graph Attention Networks)** deep learning architecture.
 
-```
-AcousticSpace-Deepfake-Detection
-│
-├── aasist
-│   ├── config
-│   ├── exp_result
-│   ├── models
-│   ├── app.py
-│   ├── main.py
-│   ├── predict.py
-│   ├── evaluation.py
-│   ├── download_dataset.py
-│   ├── data_utils.py
-│   ├── utils.py
-│   ├── requirements.txt
-│   └── README.md
-│
-└── README.md
-```
+In addition to deepfake classification, AcousticSpace provides an acoustic analysis workflow that includes:
+
+- Audio preprocessing
+- Acoustic feature extraction
+- Room Impulse Response (RIR) analysis
+- AASIST-based anti-spoofing inference
+- Prediction confidence analysis
+- Audio waveform visualization
+- Acoustic/RIR visualization
+- Detection history
+- Statistics
+- Interactive web dashboard
+- FastAPI backend services
+
+The project is structured as a modular full-stack application with a **Python/FastAPI AI backend** and a **React + TypeScript frontend**.
 
 ---
 
-## Technologies Used
+# 🎯 Project Objectives
 
-- Python
-- PyTorch
-- FastAPI
-- NumPy
-- Librosa
-- SoundFile
-- AASIST Architecture
+The primary objectives of AcousticSpace are:
 
----
-
-## Installation
-
-Clone the repository
-
-```bash
-git clone https://github.com/VinayKumar2k24/AcousticSpace-Deepfake-Detection.git
-```
-
-Go to the project directory
-
-```bash
-cd AcousticSpace-Deepfake-Detection
-```
-
-Install dependencies
-
-```bash
-pip install -r aasist/requirements.txt
-```
+1. Detect AI-generated and spoofed human speech.
+2. Classify audio as **Genuine/Bonafide** or **Spoofed/Deepfake**.
+3. Use the AASIST architecture for audio anti-spoofing.
+4. Perform audio preprocessing and analysis before model inference.
+5. Extract acoustic characteristics from speech/audio recordings.
+6. Analyze Room Impulse Response (RIR)-related acoustic information.
+7. Provide prediction confidence information.
+8. Provide an interactive web dashboard for audio analysis.
+9. Provide a FastAPI backend for model inference.
+10. Provide visualization and forensic information alongside the prediction.
+11. Maintain a modular backend and frontend architecture.
+12. Provide a foundation that can be extended for real-time detection and production deployment.
 
 ---
 
-## Run the Project
+# ✨ Key Features
 
-Run the FastAPI server
+## 🤖 AI-Based Deepfake Voice Detection
 
-```bash
-python aasist/app.py
-```
+AcousticSpace uses the **AASIST** anti-spoofing architecture to analyze speech/audio recordings.
 
-or
+The system is designed to distinguish between:
 
-```bash
-python aasist/main.py
-```
-
----
-
-## Model
-
-This project uses the **AASIST** model for Deepfake Voice Detection.
-
-The repository contains:
-
-- Pre-trained model weights
-- Configuration files
-- Evaluation scripts
-- Prediction scripts
-
----
-
-## Results
-
-The trained model can classify audio samples into:
-
-- Genuine Voice
-- Spoofed Voice
-
----
-
-## Future Improvements
-
-- Web Interface
-- Docker Deployment
-- Real-Time Audio Detection
-- REST API Enhancements
-- Model Optimization
-
----
-
-## Author
-
-**Vinay Kumar**
-
-BE in Artificial Intelligence and Machine Learning
-
-Ballari Institute of Technology and Management
-
-GitHub: https://github.com/VinayKumar2k24
-
----
-
-## License
-
-This project is licensed under the MIT License.
+```text
+Genuine / Bonafide Speech
+             vs.
+Spoofed / Deepfake Speech

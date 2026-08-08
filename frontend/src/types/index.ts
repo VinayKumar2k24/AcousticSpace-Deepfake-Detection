@@ -11,6 +11,10 @@ export interface AcousticFeatures {
   spectral_contrast?: string;
   rir?: string;
 }
+export interface BreathingAnalysis {
+  breath_score: number;
+  breathing_status: string;
+}
 
 export interface PredictionResult {
   filename: string;
@@ -20,6 +24,20 @@ export interface PredictionResult {
   timestamp?: string;
   model_used?: string;
   inference_time?: string;
+
+  breathing?: {
+    breath_score: number;
+    breathing_status: string;
+    analysis: string;
+
+    details?: {
+      rms_variation: number;
+      zero_crossing_rate: number;
+      spectral_variation: number;
+      silence_ratio: number;
+    };
+  };
+
   features?: AcousticFeatures;
 }
 
@@ -29,12 +47,24 @@ export interface HistoryItem {
   prediction: Prediction;
   confidence: number;
   processing_time: string;
+  inference_time?: string;
   timestamp: string;
   fileSize?: string;
   duration?: string;
   sampleRate?: string;
   model_used?: string;
   features?: AcousticFeatures;
+  breathing?: {
+    breath_score: number;
+    breathing_status: string;
+    analysis: string;
+    details?: {
+      rms_variation: number;
+      zero_crossing_rate: number;
+      spectral_variation: number;
+      silence_ratio: number;
+    };
+  };
 }
 
 export interface AudioFileInfo {

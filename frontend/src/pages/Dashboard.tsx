@@ -2,255 +2,310 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  Files,
-  AlertTriangle,
-  UserCheck,
-  TrendingUp,
-  Timer,
-  Cpu,
-  Server,
-  Tag,
-  ArrowRight,
-  Activity,
+  Files, AlertTriangle, UserCheck, TrendingUp, Timer, Cpu,
+  Server, Tag, ArrowRight, Activity, Zap, Clock, Eye, Shield,
+  Radio, HardDrive, CheckCircle2, AlertCircle,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import StatCard from '../components/Cards/StatCard';
 import GlassCard from '../components/Common/GlassCard';
-import type { Prediction } from '../types';
+import { calculateStatistics, isRealHuman, getPredictionLabel } from '../utils/analysisStats';
+import type { HistoryItem } from '../types';
 
 const containerVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.07 } },
+  show:   { transition: { staggerChildren: 0.05 } },
 };
 
 const Dashboard: React.FC = () => {
-  const { history, settings } = useApp();
+  const { history, settings, setCurrentResult, setCurrentFile, backendOnline } = useApp();
   const navigate = useNavigate();
 
-  const stats = useMemo(() => {
-    const total = history.length;
-    const fakes = history.filter((h) => h.prediction === 'DEEPFAKE VOICE').length;
-    const humans = total - fakes;
-    const avgConf =
-      total > 0 ? history.reduce((a, h) => a + h.confidence, 0) / total : 0;
-    return { total, fakes, humans, avgConf };
-  }, [history]);
+  const stats = useMemo(() => calculateStatistics(history), [history]);
 
-  const recent = history.slice(0, 6);
+  const handleViewItem = (item: HistoryItem) => {
+    setCurrentResult({
+      filename:        item.filename,
+      prediction:      item.prediction,
+      confidence:      item.confidence,
+      processing_time: item.processing_time,
+      inference_time:  item.inference_time,
+      timestamp:       item.timestamp,
+      model_used:      item.model_used,
+      features:        item.features,
+      breathing:       item.breathing,
+    });
 
-  const getPredColor = (p: Prediction) =>
-    p === 'REAL HUMAN VOICE' ? '#10b981' : '#ef4444';
+    if (item.fileSize) {
+      setCurrentFile({
+        file:       new File([], item.filename),
+        name:       item.filename,
+        size:       item.fileSize,
+        duration:   item.duration,
+        sampleRate: item.sampleRate,
+        format:     item.filename.split('.').pop() || 'audio',
+        url:        '',
+      });
+    }
+
+    navigate('/results');
+  };
+
+  const getPredColor = (p?: string) => (isRealHuman(p) ? '#10b981' : '#ef4444');
 
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="space-y-6"
+      style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1280px', margin: '0 auto' }}
     >
-      {/* Hero header */}
+      {/* ── Command Center Hero Banner ─────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: -16 }}
+        initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6 md:p-8"
+        transition={{ duration: 0.35 }}
         style={{
-          background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(59,130,246,0.08) 50%, rgba(139,92,246,0.06) 100%)',
-          border: '1px solid rgba(6,182,212,0.2)',
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '16px',
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(9,20,40,0.92) 60%)',
+          border: '1px solid rgba(6,182,212,0.20)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}
       >
-        <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="bg-grid" style={{ position: 'absolute', inset: 0, opacity: 0.25, pointerEvents: 'none' }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="status-online text-xs font-semibold" style={{ color: '#10b981' }}>
-                System Online
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <div
+                className="status-pill"
+                style={{
+                  background: backendOnline ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                  border: `1px solid ${backendOnline ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'}`,
+                  color: backendOnline ? '#10b981' : '#ef4444',
+                }}
+              >
+                {backendOnline ? <CheckCircle2 size={10} /> : <AlertCircle size={10} />}
+                {backendOnline ? 'ENGINE ACTIVE · FASTAPI CONNECTED' : 'BACKEND DISCONNECTED'}
+              </div>
+              <span className="telem-tag" style={{ fontSize: '9px' }}>
+                AASIST v1.0
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
-              Welcome to{' '}
-              <span className="gradient-text">AcousticSpace</span>
+
+            <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              AcousticSpace Command Center
             </h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-              AI-Powered Deepfake Audio Detection using Room Impulse Response
+
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              AI Audio Forensic Platform — Real-time RIR, AASIST Graph Attention & Acoustic Spectrum Detection
             </p>
           </div>
+
           <button
-            className="btn-primary flex items-center gap-2 self-start"
-            onClick={() => navigate('/upload')}
+            className="btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 22px', fontSize: '13px' }}
+            onClick={() => navigate('/audio-analysis')}
           >
             <Activity size={16} />
-            New Analysis
+            Start New Forensic Analysis
             <ArrowRight size={14} />
           </button>
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── KPI Stat Cards Grid (6 Columns) ────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
         <StatCard
           label="Total Audio Files"
           value={stats.total}
           icon={Files}
           iconColor="#06b6d4"
-          iconBg="rgba(6,182,212,0.12)"
-          delay={0}
+          iconBg="rgba(6,182,212,0.10)"
+          delay={0.04}
+          subLabel="Persisted in history"
+        />
+        <StatCard
+          label="Human Voices"
+          value={stats.reals}
+          icon={UserCheck}
+          iconColor="#10b981"
+          iconBg="rgba(16,185,129,0.10)"
+          glowColor="rgba(16,185,129,0.06)"
+          delay={0.08}
+          subLabel="Verified authentic"
         />
         <StatCard
           label="Deepfakes Detected"
           value={stats.fakes}
           icon={AlertTriangle}
           iconColor="#ef4444"
-          iconBg="rgba(239,68,68,0.12)"
-          glowColor="rgba(239,68,68,0.1)"
-          delay={0.07}
+          iconBg="rgba(239,68,68,0.10)"
+          glowColor="rgba(239,68,68,0.06)"
+          delay={0.12}
+          subLabel="AI voice clones"
         />
         <StatCard
-          label="Human Voices"
-          value={stats.humans}
-          icon={UserCheck}
-          iconColor="#10b981"
-          iconBg="rgba(16,185,129,0.12)"
-          glowColor="rgba(16,185,129,0.1)"
-          delay={0.14}
-        />
-        <StatCard
-          label="Avg. Confidence"
+          label="Avg Confidence"
           value={parseFloat(stats.avgConf.toFixed(1))}
           icon={TrendingUp}
           iconColor="#8b5cf6"
-          iconBg="rgba(139,92,246,0.12)"
+          iconBg="rgba(139,92,246,0.10)"
           suffix="%"
-          glowColor="rgba(139,92,246,0.08)"
-          delay={0.21}
+          delay={0.16}
+          subLabel="AASIST mean score"
+        />
+        <StatCard
+          label="High Risk Items"
+          value={stats.highRisks}
+          icon={Zap}
+          iconColor="#f59e0b"
+          iconBg="rgba(245,158,11,0.10)"
+          delay={0.20}
+          subLabel="Action required"
+        />
+        <StatCard
+          label="Avg Latency"
+          value={stats.avgTime}
+          icon={Clock}
+          iconColor="#3b82f6"
+          iconBg="rgba(59,130,246,0.10)"
+          delay={0.24}
+          subLabel="Inference time"
         />
       </div>
 
-      {/* System Status Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* ── System Infrastructure Rail ───────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }} className="grid-cols-2 md:grid-cols-4">
         {[
-          { icon: Server, label: 'System Status', value: 'Online', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-          { icon: Cpu, label: 'GPU Status', value: 'Ready', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
-          { icon: Tag, label: 'Model Version', value: settings.modelVersion || 'RIR-v1.0', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
-          { icon: Timer, label: 'Threshold', value: `${(settings.inferenceThreshold * 100).toFixed(0)}%`, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+          { icon: Server,    label: 'API Service', value: backendOnline ? 'Online (8000)' : 'Offline', color: backendOnline ? '#10b981' : '#ef4444' },
+          { icon: Cpu,       label: 'GPU Accelerator', value: 'PyTorch CUDA', color: '#8b5cf6' },
+          { icon: Tag,       label: 'Model Version',   value: settings.modelVersion || 'AASIST v1.0', color: '#06b6d4' },
+          { icon: Timer,     label: 'Threshold Rate',  value: `${(settings.inferenceThreshold * 100).toFixed(0)}%`, color: '#f59e0b' },
         ].map((item, i) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.28 + i * 0.07 }}
-            className="glass-card p-4 flex items-center gap-3"
-          >
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: item.bg }}>
-              <item.icon size={16} style={{ color: item.color }} />
+          <GlassCard key={item.label} variant="evidence" animate={true} delay={0.28 + i * 0.05} className="p-3.5 flex items-center gap-3">
+            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: `${item.color}14`, border: `1px solid ${item.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <item.icon size={15} style={{ color: item.color }} />
             </div>
-            <div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.label}</div>
-              <div
-                className="text-sm font-bold"
-                style={{ color: item.color, fontFamily: 'JetBrains Mono, monospace' }}
-              >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>{item.label}</div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: item.color, fontFamily: 'JetBrains Mono, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.value}
               </div>
             </div>
-          </motion.div>
+          </GlassCard>
         ))}
       </div>
 
-      {/* Recent Activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.55 }}
-        className="glass-card p-6"
-      >
-        <div className="flex items-center justify-between mb-5">
+      {/* ── Recent Analysis Audit Log ──────────────────────────────────── */}
+      <GlassCard className="p-5" animate={false}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
-            <h3 className="font-semibold text-white">Recent Analysis</h3>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              Latest audio detection results
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={15} style={{ color: 'var(--cyan-500)' }} />
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                Recent Forensic Activity
+              </h3>
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Latest voice analysis results from local audit store
             </p>
           </div>
+
           <button
-            className="btn-secondary text-xs px-3 py-1.5"
-            onClick={() => navigate('/history')}
+            className="btn-secondary"
+            style={{ fontSize: '11px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => navigate('/analysis-history')}
           >
-            View All
+            View Full Audit Log
+            <ArrowRight size={12} />
           </button>
         </div>
 
-        {recent.length === 0 ? (
-          <div className="text-center py-12">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)' }}
-            >
-              <Files size={24} style={{ color: 'var(--text-muted)' }} />
+        {stats.recentAnalyses.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(6,182,212,0.07)', border: '1px solid rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <Files size={20} style={{ color: 'var(--text-muted)' }} />
             </div>
-            <p className="text-sm font-medium text-white mb-1">No analyses yet</p>
-            <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-              Upload an audio file to get started
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>No Forensic Records Yet</div>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Upload an audio file to run multi-layer AI deepfake analysis.
             </p>
-            <button className="btn-primary text-sm" onClick={() => navigate('/upload')}>
-              Upload Audio
+            <button className="btn-primary" style={{ fontSize: '12px', padding: '8px 18px' }} onClick={() => navigate('/audio-analysis')}>
+              Upload Audio File
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div style={{ overflowX: 'auto' }}>
             <table className="cyber-table">
               <thead>
                 <tr>
-                  <th>File Name</th>
-                  <th>Prediction</th>
+                  <th>Audio File</th>
+                  <th>Verdict</th>
                   <th>Confidence</th>
-                  <th>Date</th>
-                  <th>Time</th>
+                  <th>Inference</th>
+                  <th>Timestamp</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {recent.map((item) => (
-                  <tr key={item.id}>
-                    <td className="max-w-xs">
-                      <span className="truncate block">{item.filename}</span>
-                    </td>
-                    <td>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          item.prediction === 'REAL HUMAN VOICE' ? 'badge-real' : 'badge-fake'
-                        }`}
-                      >
-                        {item.prediction === 'REAL HUMAN VOICE' ? '✓ Real' : '⚠ Fake'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <div className="progress-track w-16">
-                          <div
-                            className="progress-fill"
-                            style={{
-                              width: `${item.confidence}%`,
-                              background: `linear-gradient(90deg, ${getPredColor(item.prediction)}, ${getPredColor(item.prediction)}aa)`,
-                            }}
-                          />
+                {stats.recentAnalyses.map((item) => {
+                  const isReal = isRealHuman(item.prediction);
+                  const color  = getPredColor(item.prediction);
+
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '240px' }}>
+                          {item.filename}
                         </div>
-                        <span
-                          className="text-xs font-semibold"
-                          style={{ color: getPredColor(item.prediction), fontFamily: 'JetBrains Mono' }}
-                        >
-                          {item.confidence.toFixed(1)}%
+                      </td>
+                      <td>
+                        <span className={isReal ? 'badge-real' : 'badge-fake'} style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: 700 }}>
+                          {isReal ? '✓ REAL HUMAN' : '⚠ AI GENERATED'}
                         </span>
-                      </div>
-                    </td>
-                    <td>{new Date(item.timestamp).toLocaleDateString()}</td>
-                    <td style={{ fontFamily: 'JetBrains Mono', fontSize: '12px' }}>
-                      {item.processing_time}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div className="progress-track" style={{ width: '60px', height: '4px' }}>
+                            <div className="progress-fill" style={{ width: `${item.confidence}%`, background: color }} />
+                          </div>
+                          <span style={{ fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color, fontWeight: 700 }}>
+                            {item.confidence.toFixed(1)}%
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)' }}>
+                          {item.inference_time || item.processing_time || '—'}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {new Date(item.timestamp).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={() => handleViewItem(item)}
+                          className="btn-secondary"
+                          style={{ fontSize: '10px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Eye size={11} />
+                          VIEW REPORT
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
-      </motion.div>
+      </GlassCard>
     </motion.div>
   );
 };

@@ -4,75 +4,155 @@ import { AnimatePresence } from 'framer-motion';
 import { AppProvider } from './context/AppContext';
 import Sidebar from './components/Sidebar/Sidebar';
 import Navbar from './components/Navbar/Navbar';
+import ProtectedRoute from './components/Common/ProtectedRoute';
 
-// Lazy page imports
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
-const Upload = React.lazy(() => import('./pages/Upload'));
-const Results = React.lazy(() => import('./pages/Results'));
-const History = React.lazy(() => import('./pages/History'));
+/* ── Public pages ───────────────────────────────────────────────────────── */
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const Login       = React.lazy(() => import('./pages/Login'));
+const Signup      = React.lazy(() => import('./pages/Signup'));
+
+/* ── Protected pages ────────────────────────────────────────────────────── */
+const Dashboard  = React.lazy(() => import('./pages/Dashboard'));
+const Upload     = React.lazy(() => import('./pages/Upload'));
+const Results    = React.lazy(() => import('./pages/Results'));
+const History    = React.lazy(() => import('./pages/History'));
 const Statistics = React.lazy(() => import('./pages/Statistics'));
-const Settings = React.lazy(() => import('./pages/Settings'));
-const About = React.lazy(() => import('./pages/About'));
+const Settings   = React.lazy(() => import('./pages/Settings'));
+const About      = React.lazy(() => import('./pages/About'));
 
-// Page loading fallback
+/* ── Page loader ────────────────────────────────────────────────────────── */
 const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center h-full min-h-64">
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex items-end gap-1.5 h-10">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="wave-bar" />
-        ))}
-      </div>
-      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading...</p>
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '60vh',
+      flexDirection: 'column',
+      gap: '20px',
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '36px' }}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="wave-bar" />
+      ))}
     </div>
+    <p style={{ color: 'var(--text-muted)', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em' }}>
+      LOADING MODULE...
+    </p>
   </div>
 );
 
+/* ── Public layout (no sidebar/navbar) ──────────────────────────────────── */
+const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>{children}</Suspense>
+);
+
+/* ── Protected app shell ────────────────────────────────────────────────── */
 const AppLayout: React.FC = () => (
-  <div className="flex min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-    {/* Sidebar */}
-    <Sidebar />
+  <ProtectedRoute>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: 'var(--surface-0)',
+      }}
+    >
+      {/* Fixed Sidebar */}
+      <Sidebar />
 
-    {/* Main Content */}
-    <div className="flex-1 flex flex-col" style={{ marginLeft: '256px' }}>
-      <Navbar />
-
-      <main
-        className="flex-1 overflow-y-auto"
+      {/* Main content area */}
+      <div
         style={{
-          marginTop: '72px',
-          padding: '28px 28px',
-          background: 'var(--bg-primary)',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          marginLeft: 'var(--sidebar-width)',
+          minWidth: 0,
         }}
       >
-        {/* Background grid overlay */}
-        <div className="fixed inset-0 bg-grid pointer-events-none" style={{ zIndex: 0, marginLeft: '256px', marginTop: '72px' }} />
+        {/* Fixed Navbar */}
+        <Navbar />
 
-        <div className="relative z-10">
-          <Suspense fallback={<PageLoader />}>
-            <AnimatePresence mode="wait">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/upload" element={<Upload />} />
-                <Route path="/results" element={<Results />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/statistics" element={<Statistics />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/about" element={<About />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </AnimatePresence>
-          </Suspense>
-        </div>
-      </main>
+        {/* Scrollable page content */}
+        <main
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            marginTop: 'var(--navbar-height)',
+            padding: '24px 24px 32px',
+            background: 'var(--surface-0)',
+            position: 'relative',
+          }}
+        >
+          {/* Forensic micro-grid background */}
+          <div
+            className="bg-grid"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 0,
+              pointerEvents: 'none',
+              marginLeft: 'var(--sidebar-width)',
+              marginTop: 'var(--navbar-height)',
+            }}
+          />
+
+          {/* Ambient radial glow — very subtle */}
+          <div
+            style={{
+              position: 'fixed',
+              top: 'var(--navbar-height)',
+              left: 'var(--sidebar-width)',
+              right: 0,
+              height: '50vh',
+              background: 'radial-gradient(ellipse 70% 45% at 60% 0%, rgba(6,182,212,0.04) 0%, transparent 75%)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+
+          {/* Route content */}
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: '1440px', margin: '0 auto' }}>
+            <Suspense fallback={<PageLoader />}>
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/dashboard"        element={<Dashboard />} />
+                  <Route path="/audio-analysis"   element={<Upload />} />
+                  <Route path="/results"          element={<Results />} />
+                  <Route path="/analysis-history" element={<History />} />
+                  <Route path="/statistics"       element={<Statistics />} />
+                  <Route path="/settings"         element={<Settings />} />
+                  <Route path="/about"            element={<About />} />
+                  {/* Legacy path redirects */}
+                  <Route path="/upload"   element={<Navigate to="/audio-analysis"   replace />} />
+                  <Route path="/history"  element={<Navigate to="/analysis-history" replace />} />
+                  {/* Default */}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </AnimatePresence>
+            </Suspense>
+          </div>
+        </main>
+      </div>
     </div>
-  </div>
+  </ProtectedRoute>
 );
 
+/* ── Root App ───────────────────────────────────────────────────────────── */
 const App: React.FC = () => (
   <AppProvider>
     <BrowserRouter>
-      <AppLayout />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/"       element={<PublicLayout><LandingPage /></PublicLayout>} />
+        <Route path="/login"  element={<PublicLayout><Login /></PublicLayout>} />
+        <Route path="/signup" element={<PublicLayout><Signup /></PublicLayout>} />
+
+        {/* Protected app routes */}
+        <Route path="/*" element={<AppLayout />} />
+      </Routes>
     </BrowserRouter>
   </AppProvider>
 );

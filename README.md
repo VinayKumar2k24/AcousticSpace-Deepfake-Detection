@@ -180,4 +180,4 @@ For full model-specific details and references, see `/aasist/README.md`.
 - ASVspoof community and datasets
 - Open-source dependencies used across backend and frontend
 ## License
-License information for the AASIST module is available 
+License information for the AASIST module is available  in '/aasist/LICENSE'.
